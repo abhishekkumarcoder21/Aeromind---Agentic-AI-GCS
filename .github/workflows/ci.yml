@@ -1,0 +1,100 @@
+name: AeroMind CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: aeromind_test
+          POSTGRES_USER: aeromind
+          POSTGRES_PASSWORD: aeromind
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio ruff mypy
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Format check
+        run: ruff format --check .
+
+      - name: Unit tests
+        run: pytest tests/unit/ -v
+        env:
+          DATABASE_URL: postgresql+asyncpg://aeromind:aeromind@localhost:5432/aeromind_test
+          REDIS_URL: redis://localhost:6379/0
+
+      - name: Integration tests
+        run: pytest tests/integration/ -v
+        env:
+          DATABASE_URL: postgresql+asyncpg://aeromind:aeromind@localhost:5432/aeromind_test
+          REDIS_URL: redis://localhost:6379/0
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: apps/frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: apps/frontend
+        run: npm run lint
+
+      - name: Build
+        working-directory: apps/frontend
+        run: npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend Docker image
+        run: docker build -f infrastructure/docker/Dockerfile.backend -t aeromind-backend .
+
+      - name: Build frontend Docker image
+        run: docker build -f infrastructure/docker/Dockerfile.frontend -t aeromind-frontend .

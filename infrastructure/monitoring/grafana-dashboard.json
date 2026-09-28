@@ -1,0 +1,63 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "AeroMind Fleet Overview",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "aeromind_uav_count",
+          "legendFormat": "Total UAVs"
+        }
+      ]
+    },
+    {
+      "title": "Active Missions",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [
+        {
+          "expr": "aeromind_active_missions",
+          "legendFormat": "Active"
+        }
+      ]
+    },
+    {
+      "title": "WebSocket Connections",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "aeromind_ws_connections",
+          "legendFormat": "Connections"
+        }
+      ]
+    },
+    {
+      "title": "System Health",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [
+        {
+          "expr": "aeromind_system_health",
+          "legendFormat": "Health"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["aeromind", "gcs", "uav"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "title": "AeroMind GCS Dashboard",
+  "uid": "aeromind-gcs",
+  "version": 1
+}
